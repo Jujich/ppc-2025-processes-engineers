@@ -11,6 +11,7 @@
 #include "korolev_k_string_word_count/mpi/include/ops_mpi.hpp"
 #include "korolev_k_string_word_count/seq/include/ops_seq.hpp"
 #include "util/include/func_test_util.hpp"
+#include "util/include/util.hpp"
 
 namespace korolev_k_string_word_count_processes {
 

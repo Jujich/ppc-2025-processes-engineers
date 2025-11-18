@@ -15,7 +15,7 @@ using korolev_k_string_word_count::OutType;
 
 class KorolevKRunPerfTestProcesses : public ppc::util::BaseRunPerfTests<InType, OutType> {
  public:
-  static constexpr int kRepeat = 10000;
+  static constexpr int kRepeat = 190000;
 
  protected:
   void SetUp() override {
