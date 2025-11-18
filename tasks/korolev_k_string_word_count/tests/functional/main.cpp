@@ -80,8 +80,7 @@ const std::array<TestType, 12> kTestParam = {
     std::make_tuple(std::string{"punctuation,shouldn't-break!words?"}, 1),
     std::make_tuple(std::string{"русский  текст  да"}, 3),
     std::make_tuple(std::string{"emoji 👍🏽rocks"}, 2),
-    std::make_tuple(std::string{"multi\nline with \t mixed\t\n whitespace"}, 5)
-};
+    std::make_tuple(std::string{"multi\nline with \t mixed\t\n whitespace"}, 5)};
 
 TEST_P(KorolevKRunFuncTestsProcesses, CountWords) {
   ExecuteTest(GetParam());
