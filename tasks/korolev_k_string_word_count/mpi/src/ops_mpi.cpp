@@ -1,12 +1,13 @@
 #include "korolev_k_string_word_count/mpi/include/ops_mpi.hpp"
 
+#include <mpi.h>
+
 #include <algorithm>
 #include <cctype>
 #include <string>
 #include <vector>
 
 #include "korolev_k_string_word_count/common/include/common.hpp"
-#include <mpi.h>
 
 namespace korolev_k_string_word_count {
 
