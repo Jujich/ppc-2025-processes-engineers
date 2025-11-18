@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "korolev_k_string_word_count/common/include/common.hpp"
-#include "mpi/mpi.h"
+#include <mpi.h>
 
 namespace korolev_k_string_word_count {
 
