@@ -20,7 +20,7 @@ using korolev_k_string_word_count::TestType;
 
 class KorolevKRunFuncTestsProcesses : public ppc::util::BaseRunFuncTests<InType, OutType, TestType> {
  public:
-  static std::string PrintTestParam(const TestType& test_param) {
+  static std::string PrintTestParam(const TestType &test_param) {
     std::string s = std::get<0>(test_param);
     int expected = std::get<1>(test_param);
     std::string name;
@@ -45,13 +45,12 @@ class KorolevKRunFuncTestsProcesses : public ppc::util::BaseRunFuncTests<InType,
 
  protected:
   void SetUp() override {
-    const auto& params =
-        std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
+    const auto &params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
     input_data_ = std::get<0>(params);
     expected_ = std::get<1>(params);
   }
 
-  bool CheckTestOutputData(OutType& output_data) final {
+  bool CheckTestOutputData(OutType &output_data) final {
     return output_data == expected_;
   }
 
@@ -85,23 +84,15 @@ TEST_P(KorolevKRunFuncTestsProcesses, CountWords) {
 }
 
 const auto kTestTasksList =
-    std::tuple_cat(
-        ppc::util::AddFuncTask<korolev_k_string_word_count::KorolevKStringWordCountMPI, InType>(
-            kTestParam,
-            PPC_SETTINGS_korolev_k_string_word_count),
-        ppc::util::AddFuncTask<korolev_k_string_word_count::KorolevKStringWordCountSEQ, InType>(
-            kTestParam,
-            PPC_SETTINGS_korolev_k_string_word_count));
+    std::tuple_cat(ppc::util::AddFuncTask<korolev_k_string_word_count::KorolevKStringWordCountMPI, InType>(
+                       kTestParam, PPC_SETTINGS_korolev_k_string_word_count),
+                   ppc::util::AddFuncTask<korolev_k_string_word_count::KorolevKStringWordCountSEQ, InType>(
+                       kTestParam, PPC_SETTINGS_korolev_k_string_word_count));
 
 const auto kGtestValues = ppc::util::ExpandToValues(kTestTasksList);
-const auto kFuncTestName =
-    KorolevKRunFuncTestsProcesses::PrintFuncTestName<KorolevKRunFuncTestsProcesses>;
+const auto kFuncTestName = KorolevKRunFuncTestsProcesses::PrintFuncTestName<KorolevKRunFuncTestsProcesses>;
 
-INSTANTIATE_TEST_SUITE_P(
-    StringWordCountTests,
-    KorolevKRunFuncTestsProcesses,
-    kGtestValues,
-    kFuncTestName);
+INSTANTIATE_TEST_SUITE_P(StringWordCountTests, KorolevKRunFuncTestsProcesses, kGtestValues, kFuncTestName);
 
 }  // namespace
 }  // namespace korolev_k_string_word_count_processes

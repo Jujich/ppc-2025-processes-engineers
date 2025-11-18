@@ -13,10 +13,7 @@ namespace korolev_k_string_word_count {
 
 namespace {  // внутренние функции только для этого файла
 
-int CountWordsChunk(const std::string& s,
-                    std::size_t begin,
-                    std::size_t end,
-                    bool prev_is_space) {
+int CountWordsChunk(const std::string &s, std::size_t begin, std::size_t end, bool prev_is_space) {
   if (begin >= end) {
     return 0;
   }
@@ -47,7 +44,7 @@ int CountWordsChunk(const std::string& s,
 
 }  // namespace
 
-KorolevKStringWordCountMPI::KorolevKStringWordCountMPI(const InType& in) {
+KorolevKStringWordCountMPI::KorolevKStringWordCountMPI(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
   GetInput() = in;
   GetOutput() = 0;
@@ -69,7 +66,7 @@ bool KorolevKStringWordCountMPI::RunImpl() {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-  const std::string& s = GetInput();
+  const std::string &s = GetInput();
   const std::size_t n = s.size();
 
   const std::size_t base = n / static_cast<std::size_t>(size);

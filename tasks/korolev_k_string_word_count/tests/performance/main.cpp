@@ -27,7 +27,7 @@ class KorolevKRunPerfTestProcesses : public ppc::util::BaseRunPerfTests<InType, 
     expected_ = kRepeat;
   }
 
-  bool CheckTestOutputData(OutType& output_data) final {
+  bool CheckTestOutputData(OutType &output_data) final {
     return output_data == expected_;
   }
 
@@ -44,19 +44,13 @@ TEST_P(KorolevKRunPerfTestProcesses, RunPerfModes) {
   ExecuteTest(GetParam());
 }
 
-const auto kAllPerfTasks = ppc::util::MakeAllPerfTasks<
-    InType,
-    korolev_k_string_word_count::KorolevKStringWordCountMPI,
-    korolev_k_string_word_count::KorolevKStringWordCountSEQ>(
+const auto kAllPerfTasks = ppc::util::MakeAllPerfTasks<InType, korolev_k_string_word_count::KorolevKStringWordCountMPI,
+                                                       korolev_k_string_word_count::KorolevKStringWordCountSEQ>(
     PPC_SETTINGS_korolev_k_string_word_count);
 
 const auto kPerfGtestValues = ppc::util::TupleToGTestValues(kAllPerfTasks);
 const auto kPerfTestName = KorolevKRunPerfTestProcesses::CustomPerfTestName;
 
-INSTANTIATE_TEST_SUITE_P(
-    PerfStringWordCount,
-    KorolevKRunPerfTestProcesses,
-    kPerfGtestValues,
-    kPerfTestName);
+INSTANTIATE_TEST_SUITE_P(PerfStringWordCount, KorolevKRunPerfTestProcesses, kPerfGtestValues, kPerfTestName);
 
 }  // namespace korolev_k_string_word_count_processes
