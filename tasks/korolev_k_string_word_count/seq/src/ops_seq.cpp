@@ -7,7 +7,7 @@
 
 namespace korolev_k_string_word_count {
 
-KorolevKStringWordCountSEQ::KorolevKStringWordCountSEQ(const InType &in) {
+KorolevKStringWordCountSEQ::KorolevKStringWordCountSEQ(const InType& in) {
   SetTypeOfTask(GetStaticTypeOfTask());
   GetInput() = in;
   GetOutput() = 0;
@@ -24,7 +24,7 @@ bool KorolevKStringWordCountSEQ::PreProcessingImpl() {
 }
 
 bool KorolevKStringWordCountSEQ::RunImpl() {
-  const std::string &s = GetInput();
+  const std::string& s = GetInput();
   if (s.empty()) {
     GetOutput() = 0;
     return true;
@@ -32,8 +32,10 @@ bool KorolevKStringWordCountSEQ::RunImpl() {
 
   int count = 0;
   bool in_word = false;
-  for (unsigned char c : s) {
-    if (!std::isspace(c)) {
+  for (char ch : s) {
+    auto uc = static_cast<unsigned char>(ch);
+    bool is_space = std::isspace(uc) != 0;
+    if (!is_space) {
       if (!in_word) {
         ++count;
         in_word = true;

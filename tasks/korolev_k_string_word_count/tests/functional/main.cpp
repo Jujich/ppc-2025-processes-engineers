@@ -3,17 +3,14 @@
 #include <algorithm>
 #include <array>
 #include <cctype>
-#include <numeric>
+#include <cstddef>
 #include <string>
 #include <tuple>
-#include <utility>
-#include <vector>
 
 #include "korolev_k_string_word_count/common/include/common.hpp"
 #include "korolev_k_string_word_count/mpi/include/ops_mpi.hpp"
 #include "korolev_k_string_word_count/seq/include/ops_seq.hpp"
 #include "util/include/func_test_util.hpp"
-#include "util/include/util.hpp"
 
 namespace korolev_k_string_word_count_processes {
 
@@ -23,15 +20,15 @@ using korolev_k_string_word_count::TestType;
 
 class KorolevKRunFuncTestsProcesses : public ppc::util::BaseRunFuncTests<InType, OutType, TestType> {
  public:
-  static std::string PrintTestParam(const TestType &test_param) {
+  static std::string PrintTestParam(const TestType& test_param) {
     std::string s = std::get<0>(test_param);
     int expected = std::get<1>(test_param);
     std::string name;
-    name.reserve(std::min<std::size_t>(s.size(), 20));
+    name.reserve(std::min<std::size_t>(s.size(), std::size_t{20}));
+
     for (char c : s) {
-      if (std::isspace(static_cast<unsigned char>(c))) {
-        name.push_back('_');
-      } else if (std::isalnum(static_cast<unsigned char>(c))) {
+      auto uc = static_cast<unsigned char>(c);
+      if (std::isalnum(uc) != 0) {
         name.push_back(c);
       } else {
         name.push_back('_');
@@ -48,21 +45,22 @@ class KorolevKRunFuncTestsProcesses : public ppc::util::BaseRunFuncTests<InType,
 
  protected:
   void SetUp() override {
-    const auto &params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
+    const auto& params =
+        std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
     input_data_ = std::get<0>(params);
     expected_ = std::get<1>(params);
   }
 
-  bool CheckTestOutputData(OutType &output_data) final {
-    // std::cout << "out " << output_data << "\nexp " << expected_ << "\n";
+  bool CheckTestOutputData(OutType& output_data) final {
     return output_data == expected_;
   }
+
   InType GetTestInputData() final {
     return input_data_;
   }
 
  private:
-  InType input_data_{};
+  InType input_data_;
   OutType expected_{};
 };
 
@@ -87,15 +85,23 @@ TEST_P(KorolevKRunFuncTestsProcesses, CountWords) {
 }
 
 const auto kTestTasksList =
-    std::tuple_cat(ppc::util::AddFuncTask<korolev_k_string_word_count::KorolevKStringWordCountMPI, InType>(
-                       kTestParam, PPC_SETTINGS_korolev_k_string_word_count),
-                   ppc::util::AddFuncTask<korolev_k_string_word_count::KorolevKStringWordCountSEQ, InType>(
-                       kTestParam, PPC_SETTINGS_korolev_k_string_word_count));
+    std::tuple_cat(
+        ppc::util::AddFuncTask<korolev_k_string_word_count::KorolevKStringWordCountMPI, InType>(
+            kTestParam,
+            PPC_SETTINGS_korolev_k_string_word_count),
+        ppc::util::AddFuncTask<korolev_k_string_word_count::KorolevKStringWordCountSEQ, InType>(
+            kTestParam,
+            PPC_SETTINGS_korolev_k_string_word_count));
 
 const auto kGtestValues = ppc::util::ExpandToValues(kTestTasksList);
-const auto kFuncTestName = KorolevKRunFuncTestsProcesses::PrintFuncTestName<KorolevKRunFuncTestsProcesses>;
+const auto kFuncTestName =
+    KorolevKRunFuncTestsProcesses::PrintFuncTestName<KorolevKRunFuncTestsProcesses>;
 
-INSTANTIATE_TEST_SUITE_P(StringWordCountTests, KorolevKRunFuncTestsProcesses, kGtestValues, kFuncTestName);
+INSTANTIATE_TEST_SUITE_P(
+    StringWordCountTests,
+    KorolevKRunFuncTestsProcesses,
+    kGtestValues,
+    kFuncTestName);
 
 }  // namespace
 }  // namespace korolev_k_string_word_count_processes
