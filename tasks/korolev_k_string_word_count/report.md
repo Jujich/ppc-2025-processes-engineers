@@ -73,22 +73,24 @@ tasks/korolev_k_string_word_count/
 ├── common
 │ └── include
 │ └── common.hpp
+├── info.json
 ├── mpi
-│ ├── include
-│ │ └── ops_mpi.hpp
-│ └── src
-│ └── ops_mpi.cpp
+│   ├── include
+│   │   └── ops_mpi.hpp
+│   └── src
+│       └── ops_mpi.cpp
+├── report.md
 ├── seq
-│ ├── include
-│ │ └── ops_seq.hpp
-│ └── src
-│ └── ops_seq.cpp
+│   ├── include
+│   │   └── ops_seq.hpp
+│   └── src
+│       └── ops_seq.cpp
 ├── settings.json
 └── tests
-├── functional
-│ └── func_tests.cpp
-└── performance
-└── perf_tests.cpp
+    ├── functional
+    │   └── functional.cpp
+    └── performance
+        └── performance.cpp
 
 Ключевые особенности реализации MPI:
 - Корректная обработка начала слова на границе сегментов (учёт `s[begin-1]`).
