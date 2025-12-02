@@ -11,7 +11,7 @@
 
 namespace korolev_k_string_word_count {
 
-namespace {  // внутренние функции только для этого файла
+namespace {
 
 int CountWordsChunk(const std::string &s, std::size_t begin, std::size_t end, bool prev_is_space) {
   if (begin >= end) {
@@ -66,11 +66,26 @@ bool KorolevKStringWordCountMPI::RunImpl() {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-  const std::string &s = GetInput();
-  const std::size_t n = s.size();
+  std::string s;
+  unsigned long long n = 0;
+  
+  if (rank == 0) {
+    s = GetInput();
+    n = static_cast<unsigned long long>(s.size());
+  }
+  
+  MPI_Bcast(&n, 1, MPI_UNSIGNED_LONG_LONG, 0, MPI_COMM_WORLD);
+  
+  if (rank != 0) {
+    s.resize(static_cast<std::size_t>(n));
+  }
+  if (n > 0) {
+    MPI_Bcast(&s[0], static_cast<int>(n), MPI_CHAR, 0, MPI_COMM_WORLD);
+  }
 
-  const std::size_t base = n / static_cast<std::size_t>(size);
-  const std::size_t rem = n % static_cast<std::size_t>(size);
+  const std::size_t n_size = static_cast<std::size_t>(n);
+  const std::size_t base = n_size / static_cast<std::size_t>(size);
+  const std::size_t rem = n_size % static_cast<std::size_t>(size);
   const auto rank_z = static_cast<std::size_t>(rank);
 
   std::size_t begin = (rank_z * base) + std::min(rank_z, rem);
