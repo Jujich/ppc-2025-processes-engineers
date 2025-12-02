@@ -68,14 +68,14 @@ bool KorolevKStringWordCountMPI::RunImpl() {
 
   std::string s;
   unsigned long long n = 0;
-  
+
   if (rank == 0) {
     s = GetInput();
     n = static_cast<unsigned long long>(s.size());
   }
-  
+
   MPI_Bcast(&n, 1, MPI_UNSIGNED_LONG_LONG, 0, MPI_COMM_WORLD);
-  
+
   if (rank != 0) {
     s.resize(static_cast<std::size_t>(n));
   }
