@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cstddef>
+#include <cstdint>
 #include <string>
 
 #include "korolev_k_string_word_count/common/include/common.hpp"
@@ -67,11 +68,11 @@ bool KorolevKStringWordCountMPI::RunImpl() {
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 
   std::string s;
-  unsigned long long n = 0;
+  uint64_t n = 0;
 
   if (rank == 0) {
     s = GetInput();
-    n = static_cast<unsigned long long>(s.size());
+    n = static_cast<uint64_t>(s.size());
   }
 
   MPI_Bcast(&n, 1, MPI_UNSIGNED_LONG_LONG, 0, MPI_COMM_WORLD);
@@ -80,10 +81,10 @@ bool KorolevKStringWordCountMPI::RunImpl() {
     s.resize(static_cast<std::size_t>(n));
   }
   if (n > 0) {
-    MPI_Bcast(&s[0], static_cast<int>(n), MPI_CHAR, 0, MPI_COMM_WORLD);
+    MPI_Bcast(s.data(), static_cast<int>(n), MPI_CHAR, 0, MPI_COMM_WORLD);
   }
 
-  const std::size_t n_size = static_cast<std::size_t>(n);
+  const auto n_size = static_cast<std::size_t>(n);
   const std::size_t base = n_size / static_cast<std::size_t>(size);
   const std::size_t rem = n_size % static_cast<std::size_t>(size);
   const auto rank_z = static_cast<std::size_t>(rank);
