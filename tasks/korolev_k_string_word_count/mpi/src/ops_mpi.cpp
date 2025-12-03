@@ -77,12 +77,15 @@ bool KorolevKStringWordCountMPI::RunImpl() {
 
   MPI_Bcast(&n, 1, MPI_UINT64_T, 0, MPI_COMM_WORLD);
 
+  if (n == 0) {
+    GetOutput() = 0;
+    return true;
+  }
+
   if (rank != 0) {
     s.resize(static_cast<std::size_t>(n));
   }
-  if (n > 0) {
-    MPI_Bcast(s.data(), static_cast<int>(n), MPI_CHAR, 0, MPI_COMM_WORLD);
-  }
+  MPI_Bcast(s.data(), static_cast<int>(n), MPI_CHAR, 0, MPI_COMM_WORLD);
 
   const auto n_size = static_cast<std::size_t>(n);
   const std::size_t base = n_size / static_cast<std::size_t>(size);
