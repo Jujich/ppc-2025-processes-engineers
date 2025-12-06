@@ -2,10 +2,8 @@
 
 #include <mpi.h>
 
-#include <algorithm>
 #include <cctype>
 #include <cstddef>
-#include <cstdint>
 #include <string>
 
 #include "korolev_k_string_word_count/common/include/common.hpp"
@@ -82,25 +80,45 @@ bool KorolevKStringWordCountMPI::RunImpl() {
     return true;
   }
 
-  if (rank != 0) {
-    s.resize(static_cast<std::size_t>(n));
-  }
-  MPI_Bcast(s.data(), static_cast<int>(n), MPI_CHAR, 0, MPI_COMM_WORLD);
-
   const auto n_size = static_cast<std::size_t>(n);
-  const std::size_t base = n_size / static_cast<std::size_t>(size);
-  const std::size_t rem = n_size % static_cast<std::size_t>(size);
-  const auto rank_z = static_cast<std::size_t>(rank);
+  const auto size_z = static_cast<std::size_t>(size);
+  const std::size_t base = n_size / size_z;
+  const std::size_t rem = n_size % size_z;
 
-  std::size_t begin = (rank_z * base) + std::min(rank_z, rem);
-  std::size_t end = begin + base + (rank_z < rem ? std::size_t{1} : std::size_t{0});
+  std::string local_segment;
+  char prev_char = ' ';
 
-  bool prev_is_space = true;
-  if (begin > 0) {
-    prev_is_space = std::isspace(static_cast<unsigned char>(s[begin - 1])) != 0;
+  if (rank == 0) {
+    for (int dest = 1; dest < size; ++dest) {
+      auto dest_z = static_cast<std::size_t>(dest);
+      std::size_t begin_i = (dest_z * base) + std::min(dest_z, rem);
+      std::size_t end_i = begin_i + base + (dest_z < rem ? std::size_t{1} : std::size_t{0});
+      int segment_len = static_cast<int>(end_i - begin_i);
+
+      MPI_Send(&segment_len, 1, MPI_INT, dest, 0, MPI_COMM_WORLD);
+
+      char prev = (begin_i > 0) ? s[begin_i - 1] : ' ';
+      MPI_Send(&prev, 1, MPI_CHAR, dest, 1, MPI_COMM_WORLD);
+
+      MPI_Send(s.data() + begin_i, segment_len, MPI_CHAR, dest, 2, MPI_COMM_WORLD);
+    }
+
+    std::size_t begin_0 = 0;
+    std::size_t end_0 = base + (rem > 0 ? std::size_t{1} : std::size_t{0});
+    local_segment = s.substr(begin_0, end_0 - begin_0);
+    prev_char = ' ';
+  } else {
+    int segment_len = 0;
+    MPI_Recv(&segment_len, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(&prev_char, 1, MPI_CHAR, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    local_segment.resize(static_cast<std::size_t>(segment_len));
+    MPI_Recv(local_segment.data(), segment_len, MPI_CHAR, 0, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   }
 
-  int local_count = CountWordsChunk(s, begin, end, prev_is_space);
+  bool prev_is_space = std::isspace(static_cast<unsigned char>(prev_char)) != 0;
+
+  int local_count = CountWordsChunk(local_segment, 0, local_segment.size(), prev_is_space);
 
   int global_count = 0;
   MPI_Allreduce(&local_count, &global_count, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
