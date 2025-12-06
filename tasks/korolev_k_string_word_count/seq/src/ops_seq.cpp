@@ -32,8 +32,10 @@ bool KorolevKStringWordCountSEQ::RunImpl() {
 
   int count = 0;
   bool in_word = false;
-  for (unsigned char c : s) {
-    if (!std::isspace(c)) {
+  for (char ch : s) {
+    auto uc = static_cast<unsigned char>(ch);
+    bool is_space = std::isspace(uc) != 0;
+    if (!is_space) {
       if (!in_word) {
         ++count;
         in_word = true;

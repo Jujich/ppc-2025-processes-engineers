@@ -3,11 +3,9 @@
 #include <algorithm>
 #include <array>
 #include <cctype>
-#include <numeric>
+#include <cstddef>
 #include <string>
 #include <tuple>
-#include <utility>
-#include <vector>
 
 #include "korolev_k_string_word_count/common/include/common.hpp"
 #include "korolev_k_string_word_count/mpi/include/ops_mpi.hpp"
@@ -27,11 +25,11 @@ class KorolevKRunFuncTestsProcesses : public ppc::util::BaseRunFuncTests<InType,
     std::string s = std::get<0>(test_param);
     int expected = std::get<1>(test_param);
     std::string name;
-    name.reserve(std::min<std::size_t>(s.size(), 20));
+    name.reserve(std::min<std::size_t>(s.size(), std::size_t{20}));
+
     for (char c : s) {
-      if (std::isspace(static_cast<unsigned char>(c))) {
-        name.push_back('_');
-      } else if (std::isalnum(static_cast<unsigned char>(c))) {
+      auto uc = static_cast<unsigned char>(c);
+      if (std::isalnum(uc) != 0) {
         name.push_back(c);
       } else {
         name.push_back('_');
@@ -54,15 +52,15 @@ class KorolevKRunFuncTestsProcesses : public ppc::util::BaseRunFuncTests<InType,
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    // std::cout << "out " << output_data << "\nexp " << expected_ << "\n";
     return output_data == expected_;
   }
+
   InType GetTestInputData() final {
     return input_data_;
   }
 
  private:
-  InType input_data_{};
+  InType input_data_;
   OutType expected_{};
 };
 
@@ -80,8 +78,7 @@ const std::array<TestType, 12> kTestParam = {
     std::make_tuple(std::string{"punctuation,shouldn't-break!words?"}, 1),
     std::make_tuple(std::string{"русский  текст  да"}, 3),
     std::make_tuple(std::string{"emoji 👍🏽rocks"}, 2),
-    std::make_tuple(std::string{"multi\nline with \t mixed\t\n whitespace"}, 5)
-};
+    std::make_tuple(std::string{"multi\nline with \t mixed\t\n whitespace"}, 5)};
 
 TEST_P(KorolevKRunFuncTestsProcesses, CountWords) {
   ExecuteTest(GetParam());

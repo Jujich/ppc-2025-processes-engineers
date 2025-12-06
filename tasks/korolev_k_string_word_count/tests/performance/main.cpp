@@ -1,14 +1,12 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <string>
-#include <utility>
-#include <vector>
 
 #include "korolev_k_string_word_count/common/include/common.hpp"
 #include "korolev_k_string_word_count/mpi/include/ops_mpi.hpp"
 #include "korolev_k_string_word_count/seq/include/ops_seq.hpp"
 #include "util/include/perf_test_util.hpp"
-#include "util/include/util.hpp"
 
 namespace korolev_k_string_word_count_processes {
 
@@ -17,27 +15,28 @@ using korolev_k_string_word_count::OutType;
 
 class KorolevKRunPerfTestProcesses : public ppc::util::BaseRunPerfTests<InType, OutType> {
  public:
-  const int kRepeat_ = 10000;
+  static constexpr int kRepeat = 300000;
 
  protected:
   void SetUp() override {
     std::string unit = "word ";
-    input_data_.reserve(unit.size() * static_cast<std::size_t>(kRepeat_));
-    for (int i = 0; i < kRepeat_; ++i) {
+    input_data_.reserve(unit.size() * static_cast<std::size_t>(kRepeat));
+    for (int i = 0; i < kRepeat; ++i) {
       input_data_ += unit;
     }
-    expected_ = kRepeat_;
+    expected_ = kRepeat;
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
     return output_data == expected_;
   }
+
   InType GetTestInputData() final {
     return input_data_;
   }
 
  private:
-  InType input_data_{};
+  InType input_data_;
   OutType expected_{};
 };
 
