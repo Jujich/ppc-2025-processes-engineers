@@ -2,8 +2,10 @@
 
 #include <mpi.h>
 
+#include <algorithm>
 #include <cctype>
 #include <cstddef>
+#include <cstdint>
 #include <string>
 
 #include "korolev_k_string_word_count/common/include/common.hpp"
