@@ -40,9 +40,8 @@ TEST_P(KorolevKRingTopologyPerfTest, RunPerfModes) {
   ExecuteTest(GetParam());
 }
 
-const auto kAllPerfTasks =
-    ppc::util::MakeAllPerfTasks<InType, KorolevKRingTopologyMPI, KorolevKRingTopologySEQ>(
-        PPC_SETTINGS_korolev_k_ring_topology);
+const auto kAllPerfTasks = ppc::util::MakeAllPerfTasks<InType, KorolevKRingTopologyMPI, KorolevKRingTopologySEQ>(
+    PPC_SETTINGS_korolev_k_ring_topology);
 
 const auto kGtestValues = ppc::util::TupleToGTestValues(kAllPerfTasks);
 
