@@ -69,7 +69,7 @@ std::vector<uint8_t> ApplySobelOperator(const std::vector<uint8_t> &grayscale, i
   return result;
 }
 
-}
+}  // namespace
 
 KorolevKSobelOpratorSEQ::KorolevKSobelOpratorSEQ(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());

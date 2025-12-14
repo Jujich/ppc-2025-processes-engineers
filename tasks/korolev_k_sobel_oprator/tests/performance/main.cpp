@@ -57,7 +57,7 @@ TEST_P(KorolevKSobelOpratorRunPerfTestProcesses, RunPerfModes) {
 
 const auto kAllPerfTasks =
     ppc::util::MakeAllPerfTasks<InType, korolev_k_sobel_oprator::KorolevKSobelOpratorMPI,
-                                 korolev_k_sobel_oprator::KorolevKSobelOpratorSEQ>(PPC_SETTINGS_korolev_k_sobel_oprator);
+                                korolev_k_sobel_oprator::KorolevKSobelOpratorSEQ>(PPC_SETTINGS_korolev_k_sobel_oprator);
 
 const auto kPerfGtestValues = ppc::util::TupleToGTestValues(kAllPerfTasks);
 const auto kPerfTestName = KorolevKSobelOpratorRunPerfTestProcesses::CustomPerfTestName;

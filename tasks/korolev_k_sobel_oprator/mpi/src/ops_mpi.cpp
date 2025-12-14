@@ -202,8 +202,7 @@ bool KorolevKSobelOpratorMPI::RunImpl() {
   }
 
   // Конвертируем локальный блок в grayscale
-  std::vector<uint8_t> local_grayscale =
-      ConvertToGrayscale(local_pixels, width, channels, 0, local_rows_with_borders);
+  std::vector<uint8_t> local_grayscale = ConvertToGrayscale(local_pixels, width, channels, 0, local_rows_with_borders);
 
   // Применяем оператор Собеля к локальному блоку
   std::vector<uint8_t> local_result = ApplySobelOperatorLocal(local_grayscale, width, local_rows_with_borders);
