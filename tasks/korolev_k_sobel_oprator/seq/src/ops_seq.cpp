@@ -1,7 +1,8 @@
 #include "korolev_k_sobel_oprator/seq/include/ops_seq.hpp"
 
-#include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <vector>
 
@@ -12,8 +13,10 @@ namespace korolev_k_sobel_oprator {
 namespace {
 
 // Матрицы Собеля для свертки
-constexpr int kSobelX[3][3] = {{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1}};
-constexpr int kSobelY[3][3] = {{-1, -2, -1}, {0, 0, 0}, {1, 2, 1}};
+constexpr std::array<std::array<int, 3>, 3> kSobelX = {
+    {{{-1, 0, 1}}, {{-2, 0, 2}}, {{-1, 0, 1}}}};
+constexpr std::array<std::array<int, 3>, 3> kSobelY = {
+    {{{-1, -2, -1}}, {{0, 0, 0}}, {{1, 2, 1}}}};
 
 // Конвертация цветного изображения в grayscale
 std::vector<uint8_t> ConvertToGrayscale(const std::vector<uint8_t> &pixels, int width, int height, int channels) {
@@ -21,15 +24,17 @@ std::vector<uint8_t> ConvertToGrayscale(const std::vector<uint8_t> &pixels, int 
     return pixels;
   }
 
-  std::vector<uint8_t> grayscale(width * height);
-  for (int y = 0; y < height; ++y) {
-    for (int x = 0; x < width; ++x) {
-      int idx = (y * width + x) * channels;
+  const auto size = static_cast<std::size_t>(width) * static_cast<std::size_t>(height);
+  std::vector<uint8_t> grayscale(size);
+  for (int row_idx = 0; row_idx < height; ++row_idx) {
+    for (int col_idx = 0; col_idx < width; ++col_idx) {
+      const int idx = ((row_idx * width) + col_idx) * channels;
       // Формула для конвертации RGB в grayscale: 0.299*R + 0.587*G + 0.114*B
-      uint8_t r = pixels[idx];
-      uint8_t g = (channels > 1) ? pixels[idx + 1] : 0;
-      uint8_t b = (channels > 2) ? pixels[idx + 2] : 0;
-      grayscale[y * width + x] = static_cast<uint8_t>(0.299 * r + 0.587 * g + 0.114 * b);
+      const uint8_t r = pixels[idx];
+      const uint8_t g = (channels > 1) ? pixels[idx + 1] : 0;
+      const uint8_t b = (channels > 2) ? pixels[idx + 2] : 0;
+      const int gray_idx = (row_idx * width) + col_idx;
+      grayscale[gray_idx] = static_cast<uint8_t>((0.299 * r) + (0.587 * g) + (0.114 * b));
     }
   }
   return grayscale;
@@ -37,21 +42,24 @@ std::vector<uint8_t> ConvertToGrayscale(const std::vector<uint8_t> &pixels, int 
 
 // Применение оператора Собеля к grayscale изображению
 std::vector<uint8_t> ApplySobelOperator(const std::vector<uint8_t> &grayscale, int width, int height) {
-  std::vector<uint8_t> result(width * height, 0);
+  const auto size = static_cast<std::size_t>(width) * static_cast<std::size_t>(height);
+  std::vector<uint8_t> result(size, 0);
 
   // Обрабатываем только внутренние пиксели (пропускаем границы)
-  for (int y = 1; y < height - 1; ++y) {
-    for (int x = 1; x < width - 1; ++x) {
+  for (int row_idx = 1; row_idx < height - 1; ++row_idx) {
+    for (int col_idx = 1; col_idx < width - 1; ++col_idx) {
       int gx = 0;
       int gy = 0;
 
       // Применяем матрицы свертки
       for (int ky = -1; ky <= 1; ++ky) {
         for (int kx = -1; kx <= 1; ++kx) {
-          int pixel_idx = (y + ky) * width + (x + kx);
-          int pixel_value = static_cast<int>(grayscale[pixel_idx]);
-          gx += pixel_value * kSobelX[ky + 1][kx + 1];
-          gy += pixel_value * kSobelY[ky + 1][kx + 1];
+          const int pixel_idx = ((row_idx + ky) * width) + (col_idx + kx);
+          const int pixel_value = static_cast<int>(grayscale[pixel_idx]);
+          const int kernel_y = ky + 1;
+          const int kernel_x = kx + 1;
+          gx += pixel_value * kSobelX[static_cast<std::size_t>(kernel_y)][static_cast<std::size_t>(kernel_x)];
+          gy += pixel_value * kSobelY[static_cast<std::size_t>(kernel_y)][static_cast<std::size_t>(kernel_x)];
         }
       }
 
@@ -62,7 +70,8 @@ std::vector<uint8_t> ApplySobelOperator(const std::vector<uint8_t> &grayscale, i
       // Максимальное значение для |Gx| + |Gy| при uint8_t: 255 * 4 = 1020
       magnitude = std::min(255, magnitude / 4);
 
-      result[y * width + x] = static_cast<uint8_t>(magnitude);
+      const int result_idx = (row_idx * width) + col_idx;
+      result[result_idx] = static_cast<uint8_t>(magnitude);
     }
   }
 
@@ -83,7 +92,8 @@ bool KorolevKSobelOpratorSEQ::ValidationImpl() {
   if (input.width <= 0 || input.height <= 0 || input.channels <= 0) {
     return false;
   }
-  std::size_t expected_size = static_cast<std::size_t>(input.width * input.height * input.channels);
+  const auto expected_size = static_cast<std::size_t>(input.width) * static_cast<std::size_t>(input.height) *
+                             static_cast<std::size_t>(input.channels);
   if (input.pixels.size() != expected_size) {
     return false;
   }
@@ -100,7 +110,8 @@ bool KorolevKSobelOpratorSEQ::RunImpl() {
 
   // Если изображение слишком маленькое для применения оператора Собеля
   if (input.width < 3 || input.height < 3) {
-    GetOutput() = std::vector<uint8_t>(input.width * input.height, 0);
+    const auto size = static_cast<std::size_t>(input.width) * static_cast<std::size_t>(input.height);
+    GetOutput() = std::vector<uint8_t>(size, 0);
     return true;
   }
 

@@ -12,9 +12,9 @@ namespace korolev_k_sobel_oprator {
 // Для цветного изображения: channels = 3 (RGB), для grayscale: channels = 1
 struct ImageData {
   std::vector<uint8_t> pixels;  // Одномерный массив пикселей
-  int width;                    // Ширина изображения
-  int height;                   // Высота изображения
-  int channels;                 // Количество каналов (1 для grayscale, 3 для RGB)
+  int width{};                  // Ширина изображения
+  int height{};                 // Высота изображения
+  int channels{};               // Количество каналов (1 для grayscale, 3 для RGB)
 };
 
 using InType = ImageData;

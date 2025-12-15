@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <cstdint>
 #include <vector>
 
@@ -24,15 +25,17 @@ class KorolevKSobelOpratorRunPerfTestProcesses : public ppc::util::BaseRunPerfTe
     input_data_.width = kImageSize;
     input_data_.height = kImageSize;
     input_data_.channels = kChannels;
-    input_data_.pixels.resize(static_cast<std::size_t>(kImageSize * kImageSize * kChannels));
+    const auto pixels_size = static_cast<std::size_t>(kImageSize) * static_cast<std::size_t>(kImageSize) *
+                             static_cast<std::size_t>(kChannels);
+    input_data_.pixels.resize(pixels_size);
 
     // Заполняем изображение градиентом
-    for (int y = 0; y < kImageSize; ++y) {
-      for (int x = 0; x < kImageSize; ++x) {
-        int idx = (y * kImageSize + x) * kChannels;
-        uint8_t value = static_cast<uint8_t>((x + y) % 256);
-        for (int c = 0; c < kChannels; ++c) {
-          input_data_.pixels[idx + c] = value;
+    for (int row_idx = 0; row_idx < kImageSize; ++row_idx) {
+      for (int col_idx = 0; col_idx < kImageSize; ++col_idx) {
+        const int idx = ((row_idx * kImageSize) + col_idx) * kChannels;
+        const auto value = static_cast<uint8_t>((col_idx + row_idx) % 256);
+        for (int ch_idx = 0; ch_idx < kChannels; ++ch_idx) {
+          input_data_.pixels[idx + ch_idx] = value;
         }
       }
     }
@@ -40,7 +43,8 @@ class KorolevKSobelOpratorRunPerfTestProcesses : public ppc::util::BaseRunPerfTe
 
   bool CheckTestOutputData(OutType &output_data) final {
     // Проверяем, что размер выходных данных корректен
-    return output_data.size() == static_cast<std::size_t>(kImageSize * kImageSize);
+    const auto expected_size = static_cast<std::size_t>(kImageSize) * static_cast<std::size_t>(kImageSize);
+    return output_data.size() == expected_size;
   }
 
   InType GetTestInputData() final {
