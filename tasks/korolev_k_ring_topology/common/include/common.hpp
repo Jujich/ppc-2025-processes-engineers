@@ -8,8 +8,8 @@
 namespace korolev_k_ring_topology {
 
 struct RingMessage {
-  int source;
-  int dest;
+  int source = 0;
+  int dest = 0;
   std::vector<int> data;
 };
 

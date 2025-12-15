@@ -1,9 +1,7 @@
 #include <gtest/gtest.h>
 #include <mpi.h>
 
-#include <algorithm>
 #include <cstddef>
-#include <tuple>
 #include <vector>
 
 #include "korolev_k_ring_topology/common/include/common.hpp"

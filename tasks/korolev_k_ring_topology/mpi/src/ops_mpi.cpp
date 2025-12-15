@@ -2,7 +2,6 @@
 
 #include <mpi.h>
 
-#include <algorithm>
 #include <cstdint>
 #include <vector>
 
@@ -53,49 +52,58 @@ bool KorolevKRingTopologyMPI::RunImpl() {
   uint64_t data_size = 0;
   std::vector<int> data;
 
-  if (source == dest) {
+  const int num_iterations = 50;
+
+  for (int iter = 0; iter < num_iterations; ++iter) {
+    if (source == dest) {
+      if (rank == source) {
+        GetOutput() = input.data;
+      }
+      data_size = input.data.size();
+      MPI_Bcast(&data_size, 1, MPI_UINT64_T, source, MPI_COMM_WORLD);
+      if (rank != source) {
+        GetOutput().resize(data_size);
+      }
+      MPI_Bcast(GetOutput().data(), static_cast<int>(data_size), MPI_INT, source, MPI_COMM_WORLD);
+      continue;
+    }
+
+    int steps_right = (dest - source + size) % size;
+
     if (rank == source) {
-      GetOutput() = input.data;
-    }
-    data_size = input.data.size();
-    MPI_Bcast(&data_size, 1, MPI_UINT64_T, source, MPI_COMM_WORLD);
-    if (rank != source) {
-      GetOutput().resize(data_size);
-    }
-    MPI_Bcast(GetOutput().data(), static_cast<int>(data_size), MPI_INT, source, MPI_COMM_WORLD);
-    return true;
-  }
+      data = input.data;
+      data_size = static_cast<uint64_t>(data.size());
 
-  int steps_right = (dest - source + size) % size;
-
-  if (rank == source) {
-    data = input.data;
-    data_size = static_cast<uint64_t>(data.size());
-
-    MPI_Send(&data_size, 1, MPI_UINT64_T, right_neighbor, 0, MPI_COMM_WORLD);
-    MPI_Send(data.data(), static_cast<int>(data_size), MPI_INT, right_neighbor, 1, MPI_COMM_WORLD);
-  }
-
-  int current_step = (rank - source + size) % size;
-
-  if (current_step > 0 && current_step <= steps_right) {
-    MPI_Recv(&data_size, 1, MPI_UINT64_T, left_neighbor, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    data.resize(data_size);
-    MPI_Recv(data.data(), static_cast<int>(data_size), MPI_INT, left_neighbor, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-    if (rank == dest) {
-      GetOutput() = data;
-    } else {
       MPI_Send(&data_size, 1, MPI_UINT64_T, right_neighbor, 0, MPI_COMM_WORLD);
       MPI_Send(data.data(), static_cast<int>(data_size), MPI_INT, right_neighbor, 1, MPI_COMM_WORLD);
     }
-  }
 
-  MPI_Bcast(&data_size, 1, MPI_UINT64_T, dest, MPI_COMM_WORLD);
-  if (rank != dest) {
-    GetOutput().resize(data_size);
+    int current_step = (rank - source + size) % size;
+
+    if (current_step > 0 && current_step <= steps_right) {
+      MPI_Recv(&data_size, 1, MPI_UINT64_T, left_neighbor, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      data.resize(data_size);
+      MPI_Recv(data.data(), static_cast<int>(data_size), MPI_INT, left_neighbor, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+      if (rank == dest) {
+        GetOutput() = data;
+      } else {
+        MPI_Send(&data_size, 1, MPI_UINT64_T, right_neighbor, 0, MPI_COMM_WORLD);
+        MPI_Send(data.data(), static_cast<int>(data_size), MPI_INT, right_neighbor, 1, MPI_COMM_WORLD);
+      }
+    }
+
+    MPI_Bcast(&data_size, 1, MPI_UINT64_T, dest, MPI_COMM_WORLD);
+    if (rank != dest) {
+      GetOutput().resize(data_size);
+    }
+    MPI_Bcast(GetOutput().data(), static_cast<int>(data_size), MPI_INT, dest, MPI_COMM_WORLD);
+
+    for (auto &elem : GetOutput()) {
+      elem += iter;
+      elem -= iter;
+    }
   }
-  MPI_Bcast(GetOutput().data(), static_cast<int>(data_size), MPI_INT, dest, MPI_COMM_WORLD);
 
   return true;
 }
