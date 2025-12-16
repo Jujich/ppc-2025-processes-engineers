@@ -3,7 +3,6 @@
 #include <mpi.h>
 
 #include <array>
-#include <cstddef>
 #include <cstdint>
 #include <vector>
 
@@ -53,7 +52,7 @@ void HandleSelfSend(int rank, int source, const std::vector<int> &input_data, MP
 void SendDataFromSource(int rank, int source, int right_neighbor, const std::vector<int> &input_data,
                         MPI_Comm cart_comm) {
   if (rank == source) {
-    uint64_t data_size = static_cast<uint64_t>(input_data.size());
+    auto data_size = static_cast<uint64_t>(input_data.size());
     MPI_Send(&data_size, 1, MPI_UINT64_T, right_neighbor, 0, cart_comm);
     MPI_Send(input_data.data(), static_cast<int>(data_size), MPI_INT, right_neighbor, 1, cart_comm);
   }
@@ -109,7 +108,7 @@ bool KorolevKRingTopologySEQ::RunImpl() {
   std::array<int, 1> periods = {1};
   int reorder = 0;
 
-  MPI_Comm cart_comm = nullptr;
+  MPI_Comm cart_comm = MPI_COMM_NULL;
   MPI_Cart_create(MPI_COMM_WORLD, 1, dims.data(), periods.data(), reorder, &cart_comm);
 
   int left_neighbor = 0;
