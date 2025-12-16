@@ -1,5 +1,6 @@
 #include "korolev_k_sobel_oprator/seq/include/ops_seq.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstddef>
@@ -56,8 +57,8 @@ std::vector<uint8_t> ApplySobelOperator(const std::vector<uint8_t> &grayscale, i
           const int pixel_value = static_cast<int>(grayscale[pixel_idx]);
           const int kernel_y = ky + 1;
           const int kernel_x = kx + 1;
-          gx += pixel_value * kSobelX[static_cast<std::size_t>(kernel_y)][static_cast<std::size_t>(kernel_x)];
-          gy += pixel_value * kSobelY[static_cast<std::size_t>(kernel_y)][static_cast<std::size_t>(kernel_x)];
+          gx += pixel_value * kSobelX.at(static_cast<std::size_t>(kernel_y)).at(static_cast<std::size_t>(kernel_x));
+          gy += pixel_value * kSobelY.at(static_cast<std::size_t>(kernel_y)).at(static_cast<std::size_t>(kernel_x));
         }
       }
 

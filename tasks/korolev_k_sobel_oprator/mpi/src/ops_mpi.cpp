@@ -2,6 +2,7 @@
 
 #include <mpi.h>
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstddef>
@@ -73,8 +74,8 @@ std::vector<uint8_t> ApplySobelOperatorLocal(const std::vector<uint8_t> &local_g
           const int pixel_value = static_cast<int>(local_grayscale[pixel_idx]);
           const int kernel_y = ky + 1;
           const int kernel_x = kx + 1;
-          gx += pixel_value * kSobelX[static_cast<std::size_t>(kernel_y)][static_cast<std::size_t>(kernel_x)];
-          gy += pixel_value * kSobelY[static_cast<std::size_t>(kernel_y)][static_cast<std::size_t>(kernel_x)];
+          gx += pixel_value * kSobelX.at(static_cast<std::size_t>(kernel_y)).at(static_cast<std::size_t>(kernel_x));
+          gy += pixel_value * kSobelY.at(static_cast<std::size_t>(kernel_y)).at(static_cast<std::size_t>(kernel_x));
         }
       }
 
@@ -92,40 +93,52 @@ std::vector<uint8_t> ApplySobelOperatorLocal(const std::vector<uint8_t> &local_g
   return result;
 }
 
+// Копирование локальных данных процессом 0
+void CopyLocalData(int width, int channels, const std::vector<uint8_t> &all_pixels, std::vector<uint8_t> &local_pixels,
+                   int local_start_row_with_border, int local_rows_with_borders) {
+  for (int row_idx = 0; row_idx < local_rows_with_borders; ++row_idx) {
+    const int src_y = local_start_row_with_border + row_idx;
+    for (int col_idx = 0; col_idx < width; ++col_idx) {
+      for (int ch_idx = 0; ch_idx < channels; ++ch_idx) {
+        const int src_idx = (((src_y * width) + col_idx) * channels) + ch_idx;
+        const int dst_idx = (((row_idx * width) + col_idx) * channels) + ch_idx;
+        local_pixels[dst_idx] = all_pixels[src_idx];
+      }
+    }
+  }
+}
+
+// Отправка данных процессу-получателю
+void SendDataToProcess(int dest, int size_z, int width, int channels, int base_rows, int rem_rows,
+                       const std::vector<uint8_t> &all_pixels) {
+  const int dest_start_row = (dest * base_rows) + std::min(dest, rem_rows);
+  const int dest_num_rows = base_rows + (dest < rem_rows ? 1 : 0);
+  int dest_rows_with_borders = dest_num_rows;
+  if (dest > 0) {
+    dest_rows_with_borders++;
+  }
+  if (dest < size_z - 1) {
+    dest_rows_with_borders++;
+  }
+  const int dest_start_row_with_border = (dest > 0) ? dest_start_row - 1 : dest_start_row;
+
+  const int send_count = dest_rows_with_borders * width * channels;
+  const auto offset = static_cast<ptrdiff_t>(dest_start_row_with_border) * static_cast<ptrdiff_t>(width) *
+                      static_cast<ptrdiff_t>(channels);
+  MPI_Send(all_pixels.data() + offset, send_count, MPI_UNSIGNED_CHAR, dest, 0, MPI_COMM_WORLD);
+}
+
 // Распределение данных по процессам
 void DistributeData(int rank, int size_z, int width, int channels, const std::vector<uint8_t> &all_pixels,
                     std::vector<uint8_t> &local_pixels, int local_start_row_with_border, int local_rows_with_borders,
                     int base_rows, int rem_rows) {
   if (rank == 0) {
     // Процесс 0 копирует свои данные
-    for (int row_idx = 0; row_idx < local_rows_with_borders; ++row_idx) {
-      const int src_y = local_start_row_with_border + row_idx;
-      for (int col_idx = 0; col_idx < width; ++col_idx) {
-        for (int ch_idx = 0; ch_idx < channels; ++ch_idx) {
-          const int src_idx = ((src_y * width) + col_idx) * channels + ch_idx;
-          const int dst_idx = ((row_idx * width) + col_idx) * channels + ch_idx;
-          local_pixels[dst_idx] = all_pixels[src_idx];
-        }
-      }
-    }
+    CopyLocalData(width, channels, all_pixels, local_pixels, local_start_row_with_border, local_rows_with_borders);
 
     // Отправляем данные остальным процессам
     for (int dest = 1; dest < size_z; ++dest) {
-      const int dest_start_row = (dest * base_rows) + std::min(dest, rem_rows);
-      const int dest_num_rows = base_rows + (dest < rem_rows ? 1 : 0);
-      int dest_rows_with_borders = dest_num_rows;
-      if (dest > 0) {
-        dest_rows_with_borders++;
-      }
-      if (dest < size_z - 1) {
-        dest_rows_with_borders++;
-      }
-      const int dest_start_row_with_border = (dest > 0) ? dest_start_row - 1 : dest_start_row;
-
-      const int send_count = dest_rows_with_borders * width * channels;
-      const auto offset = static_cast<ptrdiff_t>(dest_start_row_with_border) * static_cast<ptrdiff_t>(width) *
-                          static_cast<ptrdiff_t>(channels);
-      MPI_Send(all_pixels.data() + offset, send_count, MPI_UNSIGNED_CHAR, dest, 0, MPI_COMM_WORLD);
+      SendDataToProcess(dest, size_z, width, channels, base_rows, rem_rows, all_pixels);
     }
   } else {
     // Принимаем данные от процесса 0
