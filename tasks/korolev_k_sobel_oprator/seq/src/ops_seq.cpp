@@ -13,10 +13,8 @@ namespace korolev_k_sobel_oprator {
 namespace {
 
 // Матрицы Собеля для свертки
-constexpr std::array<std::array<int, 3>, 3> kSobelX = {
-    {{{-1, 0, 1}}, {{-2, 0, 2}}, {{-1, 0, 1}}}};
-constexpr std::array<std::array<int, 3>, 3> kSobelY = {
-    {{{-1, -2, -1}}, {{0, 0, 0}}, {{1, 2, 1}}}};
+constexpr std::array<std::array<int, 3>, 3> kSobelX = {{{{-1, 0, 1}}, {{-2, 0, 2}}, {{-1, 0, 1}}}};
+constexpr std::array<std::array<int, 3>, 3> kSobelY = {{{{-1, -2, -1}}, {{0, 0, 0}}, {{1, 2, 1}}}};
 
 // Конвертация цветного изображения в grayscale
 std::vector<uint8_t> ConvertToGrayscale(const std::vector<uint8_t> &pixels, int width, int height, int channels) {

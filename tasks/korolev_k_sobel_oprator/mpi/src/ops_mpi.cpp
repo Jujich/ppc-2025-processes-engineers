@@ -15,10 +15,8 @@ namespace korolev_k_sobel_oprator {
 namespace {
 
 // Матрицы Собеля для свертки
-constexpr std::array<std::array<int, 3>, 3> kSobelX = {
-    {{{-1, 0, 1}}, {{-2, 0, 2}}, {{-1, 0, 1}}}};
-constexpr std::array<std::array<int, 3>, 3> kSobelY = {
-    {{{-1, -2, -1}}, {{0, 0, 0}}, {{1, 2, 1}}}};
+constexpr std::array<std::array<int, 3>, 3> kSobelX = {{{{-1, 0, 1}}, {{-2, 0, 2}}, {{-1, 0, 1}}}};
+constexpr std::array<std::array<int, 3>, 3> kSobelY = {{{{-1, -2, -1}}, {{0, 0, 0}}, {{1, 2, 1}}}};
 
 // Конвертация цветного изображения в grayscale
 std::vector<uint8_t> ConvertToGrayscale(const std::vector<uint8_t> &pixels, int width, int channels, int start_row,
@@ -95,9 +93,9 @@ std::vector<uint8_t> ApplySobelOperatorLocal(const std::vector<uint8_t> &local_g
 }
 
 // Распределение данных по процессам
-void DistributeData(int rank, int size_z, int width, int height, int channels,
-                    const std::vector<uint8_t> &all_pixels, std::vector<uint8_t> &local_pixels,
-                    int local_start_row_with_border, int local_rows_with_borders, int base_rows, int rem_rows) {
+void DistributeData(int rank, int size_z, int width, int channels, const std::vector<uint8_t> &all_pixels,
+                    std::vector<uint8_t> &local_pixels, int local_start_row_with_border, int local_rows_with_borders,
+                    int base_rows, int rem_rows) {
   if (rank == 0) {
     // Процесс 0 копирует свои данные
     for (int row_idx = 0; row_idx < local_rows_with_borders; ++row_idx) {
@@ -267,7 +265,7 @@ bool KorolevKSobelOpratorMPI::RunImpl() {
                                  static_cast<std::size_t>(channels);
   std::vector<uint8_t> local_pixels(local_pixels_size);
 
-  DistributeData(rank, size_z, width, height, channels, all_pixels, local_pixels, local_start_row_with_border,
+  DistributeData(rank, size_z, width, channels, all_pixels, local_pixels, local_start_row_with_border,
                  local_rows_with_borders, base_rows, rem_rows);
 
   // Конвертируем локальный блок в grayscale
