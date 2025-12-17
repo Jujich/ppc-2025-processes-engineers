@@ -246,8 +246,8 @@ bool KorolevKSobelOpratorMPI::RunImpl() {
   // Если изображение слишком маленькое
   if (width < 3 || height < 3) {
     if (rank == 0) {
-      const auto size = static_cast<std::size_t>(width) * static_cast<std::size_t>(height);
-      GetOutput() = std::vector<uint8_t>(size, 0);
+      const auto output_size = static_cast<std::size_t>(width) * static_cast<std::size_t>(height);
+      GetOutput() = std::vector<uint8_t>(output_size, 0);
     } else {
       GetOutput() = {};
     }
