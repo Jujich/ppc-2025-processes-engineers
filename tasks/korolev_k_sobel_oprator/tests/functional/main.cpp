@@ -40,8 +40,8 @@ class KorolevKSobelOpratorRunFuncTestsProcesses : public ppc::util::BaseRunFuncT
     this->input_data_.width = width;
     this->input_data_.height = height;
     this->input_data_.channels = channels;
-    const auto pixels_size = static_cast<std::size_t>(width) * static_cast<std::size_t>(height) *
-                             static_cast<std::size_t>(channels);
+    const auto pixels_size =
+        static_cast<std::size_t>(width) * static_cast<std::size_t>(height) * static_cast<std::size_t>(channels);
     this->input_data_.pixels.resize(pixels_size);
 
     // Создаем простое тестовое изображение с градиентом
@@ -58,7 +58,8 @@ class KorolevKSobelOpratorRunFuncTestsProcesses : public ppc::util::BaseRunFuncT
 
   bool CheckTestOutputData(OutType &output_data) final {
     // Проверяем, что размер выходных данных корректен
-    const auto expected_size = static_cast<std::size_t>(this->input_data_.width) * static_cast<std::size_t>(this->input_data_.height);
+    const auto expected_size =
+        static_cast<std::size_t>(this->input_data_.width) * static_cast<std::size_t>(this->input_data_.height);
     if (output_data.size() != expected_size) {
       return false;
     }
@@ -66,8 +67,7 @@ class KorolevKSobelOpratorRunFuncTestsProcesses : public ppc::util::BaseRunFuncT
     // Проверяем, что результат не пустой (для изображений размером >= 3x3 должны быть ненулевые значения)
     if (this->input_data_.width >= 3 && this->input_data_.height >= 3) {
       // Проверяем, что есть хотя бы некоторые ненулевые значения (ребра должны быть обнаружены)
-      bool has_non_zero = std::any_of(output_data.begin(), output_data.end(),
-                                      [](uint8_t val) { return val > 0; });
+      bool has_non_zero = std::any_of(output_data.begin(), output_data.end(), [](uint8_t val) { return val > 0; });
       if (!has_non_zero) {
         return false;
       }
