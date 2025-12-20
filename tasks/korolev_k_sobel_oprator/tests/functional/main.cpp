@@ -2,9 +2,11 @@
 #include <stb/stb_image.h>
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <numeric>
+#include <ranges>
 #include <string>
 #include <tuple>
 
@@ -31,7 +33,7 @@ class KorolevKSobelOpratorRunFuncTestsProcesses : public ppc::util::BaseRunFuncT
 
  protected:
   void SetUp() override {
-    const auto &params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(this->GetParam());
+    const auto &params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
     int width = std::get<0>(params);
     int height = std::get<1>(params);
     int channels = std::get<2>(params);
@@ -67,7 +69,7 @@ class KorolevKSobelOpratorRunFuncTestsProcesses : public ppc::util::BaseRunFuncT
     // Проверяем, что результат не пустой (для изображений размером >= 3x3 должны быть ненулевые значения)
     if (this->input_data_.width >= 3 && this->input_data_.height >= 3) {
       // Проверяем, что есть хотя бы некоторые ненулевые значения (ребра должны быть обнаружены)
-      bool has_non_zero = std::any_of(output_data.begin(), output_data.end(), [](uint8_t val) { return val > 0; });
+      bool has_non_zero = std::ranges::any_of(output_data, [](uint8_t val) { return val > 0; });
       if (!has_non_zero) {
         return false;
       }
